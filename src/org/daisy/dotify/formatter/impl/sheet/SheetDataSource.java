@@ -341,6 +341,9 @@ public class SheetDataSource implements SplitPointDataSource<Sheet, SheetDataSou
 		if (!allowsSplit) {
 			throw new IllegalStateException();
 		}
+		if (!sheetBuffer.isEmpty()) {
+			throw new AssertionError();
+		}
 		allowsSplit = false;
 		return SplitPointDataSource.super.split(atIndex);
 	}
