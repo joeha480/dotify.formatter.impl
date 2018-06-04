@@ -70,9 +70,17 @@ public class FormatterCoreImpl extends Stack<Block> implements FormatterCore, Bl
 	private Table table;
 	protected final FormatterCoreContext fc;
 	//The code where this variable is used is not very nice, but it will do to get the feature running
-	private Boolean endStart = null;
+	private Boolean startEndStart = null;
 	// TODO: fix recursive keep problem
 	// TODO: Implement floating elements
+	private enum BlockState {
+		NONE,
+		START,
+		END;
+	}
+	private BlockState blockState = BlockState.NONE;
+	
+	
 	public FormatterCoreImpl(FormatterCoreContext fc) {
 		this(fc, false);
 	}
@@ -104,10 +112,17 @@ public class FormatterCoreImpl extends Stack<Block> implements FormatterCore, Bl
 		if (table!=null) {
 			throw new IllegalStateException("A table is open.");
 		}
-		if (endStart!=null && endStart == true) {
+		if (blockState==BlockState.END) {
+			getCurrentBlock().setShouldAttachToNextIfInvisible(false);
+		}
+		// Note that the concepts of start/end/start below and block state above are different.
+		// The former requires a start/end/start sequence, it doesn't match, for
+		// example, an end/end/start sequence. Conversely, the block state above matches any 
+		// sequence where an end call is followed by a start call.
+		if (startEndStart!=null && startEndStart == true) {
 			getCurrentBlock().setVolumeKeepAfterPriority(getCurrentVolumeKeepPriority());
 		}
-		endStart = null;
+		startEndStart = null;
 		String lb = "";
 		String rb = "";
 		if (p.getTextBorderStyle()!=null) {
@@ -135,6 +150,7 @@ public class FormatterCoreImpl extends Stack<Block> implements FormatterCore, Bl
 					outerSpaceBefore(p.getMargin().getTopSpacing()).
 					underlineStyle(p.getUnderlineStyle());
 		Block c = newBlock(blockId, rdp.build());
+		c.setShouldAttachToNextIfInvisible(true);
 		if (propsContext.size()>0) {
 			if (propsContext.peek().getBlockProperties().getListType()!=FormattingTypes.ListStyle.NONE) {
 				String listLabel = p.getListItemLabel();
@@ -194,6 +210,7 @@ public class FormatterCoreImpl extends Stack<Block> implements FormatterCore, Bl
 		builder.innerSpaceBefore(p.getPadding().getTopSpacing());
 		bi.setRowDataProperties(builder.build());
 		//firstRow = true;
+		blockState = BlockState.START;
 	}
 	
 	private Integer inheritVolumeKeepPriority(Integer value) {
@@ -216,10 +233,17 @@ public class FormatterCoreImpl extends Stack<Block> implements FormatterCore, Bl
 		if (listItem!=null) {
 			addChars("", new TextProperties.Builder(null).build());
 		}
-		if (endStart == null) {
-			endStart = true;
+		if (!empty()) {
+			if (blockState == BlockState.END) {
+				getCurrentBlock().setShouldAttachToNextIfInvisible(false);
+			} else {
+				getCurrentBlock().setShouldAttachToNextIfInvisible(true);
+			}
+		}
+		if (startEndStart == null) {
+			startEndStart = true;
 		} else {
-			endStart = false;
+			startEndStart = false;
 		}
 		{
 		AncestorContext ac = propsContext.pop();
@@ -273,6 +297,7 @@ public class FormatterCoreImpl extends Stack<Block> implements FormatterCore, Bl
 						//.stackMarginComp(formatterContext, true, true)
 						underlineStyle(p.getUnderlineStyle());
 			Block c = newBlock(null, rdp.build());
+			c.setShouldAttachToNextIfInvisible(true);
 			c.setKeepType(keep);
 			c.setKeepWithNext(next);
 			// We don't get the volume keep priority from the BlockProperties, as it could have been inherited from an ancestor
@@ -280,6 +305,7 @@ public class FormatterCoreImpl extends Stack<Block> implements FormatterCore, Bl
 			c.setVolumeKeepAfterPriority(getParentVolumeKeepPriority());
 		}
 		//firstRow = true;
+		blockState = BlockState.END;
 	}
 	
 	public Block newBlock(String blockId, RowDataProperties rdp) {

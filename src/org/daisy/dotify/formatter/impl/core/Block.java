@@ -40,6 +40,7 @@ public abstract class Block {
 	private final RenderingScenario rs;
 	private boolean isVolatile;
 	private BlockAddress blockAddress;
+	private boolean attachToNext;
 
 	Block(String blockId, RowDataProperties rdp, RenderingScenario rs) {
 		this.context = null;
@@ -59,6 +60,7 @@ public abstract class Block {
 		this.metaPage = null;
 		this.rs = rs;
 		this.isVolatile = false;
+		this.attachToNext = false;
 	}
 	
 	Block(Block template) {
@@ -80,6 +82,7 @@ public abstract class Block {
 		this.rs = template.rs;
 		this.isVolatile = template.isVolatile;
 		this.blockAddress = template.blockAddress;
+		this.attachToNext = template.attachToNext;
 	}
 	
 	/**
@@ -252,6 +255,25 @@ public abstract class Block {
 	
 	public Integer getAvoidVolumeBreakInsidePriority() {
 		return avoidVolumeBreakInsidePriority;
+	}
+	
+	/**
+	 * When true, this block should attach to the next block if its height is 0.
+	 * A block's height is 0 if it doesn't produce any rows.
+	 * This is useful if this block contains markers that should be associated
+	 * with the next block.
+	 * @return true if the block should attach to the next block, false otherwise.
+	 */
+	public boolean shouldAttachToNextIfInvisible() {
+		return attachToNext;
+	}
+	
+	/**
+	 * Sets the block to attach to the next block when invisible.
+	 * @param value true if the block should attached to the next block when empty, false otherwise.
+	 */
+	public void setShouldAttachToNextIfInvisible(boolean value) {
+		this.attachToNext = value;
 	}
 
 }

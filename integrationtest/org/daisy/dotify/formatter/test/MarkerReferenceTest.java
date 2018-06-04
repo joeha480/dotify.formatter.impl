@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.daisy.dotify.api.engine.LayoutEngineException;
 import org.daisy.dotify.api.writer.PagedMediaWriterConfigurationException;
-import org.junit.Ignore;
 import org.junit.Test;
 @SuppressWarnings("javadoc")
 public class MarkerReferenceTest extends AbstractFormatterEngineTest {
@@ -65,9 +64,18 @@ public class MarkerReferenceTest extends AbstractFormatterEngineTest {
 	}
 	
 	@Test
-	@Ignore("This is an open issue, see https://github.com/brailleapps/dotify.formatter.impl/issues/48")
 	public void testMarkerMultiple() throws LayoutEngineException, IOException, PagedMediaWriterConfigurationException {
 		testPEF("resource-files/marker-ref-multiple-input.obfl", "resource-files/marker-ref-multiple-expected.pef", false);
+	}
+	
+	@Test
+	public void testMarkerMultiple2() throws LayoutEngineException, IOException, PagedMediaWriterConfigurationException {
+		testPEF("resource-files/marker-ref-multiple2-input.obfl", "resource-files/marker-ref-multiple2-expected.pef", false);
+	}
+	
+	@Test
+	public void testMarkerMultiple3() throws LayoutEngineException, IOException, PagedMediaWriterConfigurationException {
+		testPEF("resource-files/marker-ref-multiple3-input.obfl", "resource-files/marker-ref-multiple3-expected.pef", false);
 	}
 
 }

@@ -116,12 +116,13 @@ class RowGroupProvider {
 			phase++;
 			//TODO: Does this interfere with collapsing margins?
 			if (shouldAddGroupForEmptyContent()) {
+				boolean hasNext = hasNext();
+				boolean breakable = !hasNext && keepWithNext<0 && !g.shouldAttachToNextIfInvisible();
 				RowGroup.Builder rgb = setPropertiesForFirstContentRowGroup(
-					new RowGroup.Builder(master.getRowSpacing(), new ArrayList<RowImpl>()), 
-					bc.getRefs(),
-					g
-				);
-				return setPropertiesThatDependOnHasNext(rgb, hasNext(), g).build();
+						new RowGroup.Builder(master.getRowSpacing(), new ArrayList<RowImpl>()).breakable(breakable),
+						bc.getRefs(),
+						g);
+				return setPropertiesThatDependOnHasNext(rgb, hasNext, g).build();
 			}
 		}
 		if (phase==3) {
