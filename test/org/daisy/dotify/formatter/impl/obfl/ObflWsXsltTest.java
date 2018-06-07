@@ -119,13 +119,26 @@ public class ObflWsXsltTest {
 		assertTrue("Compare (Item) failed at byte: " + ret, ret == -1);
 	}
 	
+	@Test
+	@Ignore
+	public void testWsNormalizer_17() throws IOException, XMLStreamException {
+		int ret = testWsNormalizer("resource-files/ws-test-input-17.xml", "resource-files/ws-test-expected-17.xml", "17", false);
+		assertTrue("Compare (Item) failed at byte: " + ret, ret == -1);
+	}
+	
 	// Helpers
 	public int testWsNormalizer(String input, String expected, String id, boolean keep) throws IOException, XMLStreamException {
-		
+		return testWsNormalizer(input, expected, id, null);
+	}
+	
+	public int testWsNormalizer(String input, String expected, String id, File normalizedFile) throws IOException, XMLStreamException {
+		boolean keep = normalizedFile!=null;
+		if (!keep) {
+			normalizedFile = File.createTempFile("TestResult-"+id+"-", ".tmp");
+		}
 		File in = File.createTempFile("TestInput-"+id+"-", ".tmp");
 		copy(this.getClass().getResourceAsStream(input), new FileOutputStream(in));
 		
-		File normalizedFile = File.createTempFile("TestResult-"+id+"-", ".tmp");
 		XMLInputFactory inFactory = XMLInputFactory.newInstance();
 		inFactory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
 		inFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
@@ -146,7 +159,7 @@ public class ObflWsXsltTest {
 		if (!keep && !normalizedFile.delete()) {
 			normalizedFile.deleteOnExit();
 		}
-		if (!keep && !in.delete()) {
+		if (!in.delete()) {
 			in.deleteOnExit();
 		}
 		
