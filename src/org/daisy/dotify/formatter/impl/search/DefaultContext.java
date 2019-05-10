@@ -2,6 +2,14 @@ package org.daisy.dotify.formatter.impl.search;
 
 import org.daisy.dotify.api.formatter.Context;
 
+/**
+ * <p>Implements {@link Context}.</p>
+ * 
+ * <p>Note that the {@link CrossReferenceHandler} returned 
+ * by {@link #getRefs()} is mutable.</p>
+ * 
+ * @author Joel Håkansson
+ */
 public class DefaultContext implements Context {
 
 	private final Integer currentVolume, currentPage, metaVolume, metaPage;

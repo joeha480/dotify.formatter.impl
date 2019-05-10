@@ -8,6 +8,14 @@ import org.daisy.dotify.api.translator.Border.Builder.BuilderView;
 import org.daisy.dotify.api.translator.BorderSpecification.Align;
 import org.daisy.dotify.api.translator.BorderSpecification.Style;
 
+/**
+ * Provides a way to construct a {@link Border} using key/value strings.
+ * The border is configured using {@link #put(String, String)}. Once
+ * the specification is complete, use {@link #build()} to create
+ * the border.
+ * 
+ * @author Joel Håkansson
+ */
 class BorderBuilder {
 	
 	private static final String KEY_BORDER = "border";
@@ -26,7 +34,15 @@ class BorderBuilder {
 		this.builder = new Border.Builder();
 	}
 	
-	void put(String key, Object value) {
+	/**
+	 * Parses an <a
+	 * href="http://braillespecs.github.io/obfl/obfl-specification.html#borders">OBFL border attribute</a>
+	 * and adds its specification to the border builder.
+	 * 
+	 * @param key the key
+	 * @param value the value
+	 */
+	void put(String key, String value) {
 		if (key!=null && key.toLowerCase().startsWith(KEY_BORDER)) {
 			useBorder = true;
 			HashSet<String> set = new HashSet<>();
@@ -46,7 +62,7 @@ class BorderBuilder {
 			}
 			if (set.size()==1) {
 				String s = set.iterator().next();
-				set(b, s, value.toString());
+				set(b, s, value);
 			} else {
 				//unknown
 				Logger.getLogger(this.getClass().getCanonicalName()).warning("Unknown feature: " + key);
@@ -75,6 +91,11 @@ class BorderBuilder {
 		}
 	}
 	
+	/**
+	 * Builds the border in it's current state. If no valid call to {@link #put(String, String)}
+	 * has been made, null is returned.
+	 * @return the border, or null if no specification has been provided
+	 */
 	Border build() {
 		if (useBorder) {
 			return builder.build();
@@ -82,7 +103,5 @@ class BorderBuilder {
 			return null;
 		}
 	}
-
-
 
 }
