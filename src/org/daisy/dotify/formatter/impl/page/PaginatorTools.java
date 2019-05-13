@@ -7,6 +7,9 @@ import java.util.TreeSet;
 
 import org.daisy.dotify.common.text.StringTools;
 
+/**
+ * <p>Provides a string distribution tool, which can be useful for positioning of header/footer fields and layout of tables.</p>
+ */
 class PaginatorTools {
 	/**
 	 * Distribution modes 
@@ -130,7 +133,7 @@ class PaginatorTools {
 	 * @param padding the padding pattern to use as separator
 	 * @param mode the distribution mode to use
 	 * @return returns a string of <code>width</code> chars 
-	 * @throws PaginatorToolsException if distribution fails
+	 * @throws PaginatorToolsException if distribution fails, for example if the text does not fit within provided space
 	 */
 	static String distribute(List<String> units, int width, String padding, DistributeMode mode) throws PaginatorToolsException {
 		switch (mode) {
@@ -146,7 +149,11 @@ class PaginatorTools {
 	}
 
 	/**
-	 * @param units
+	 * @param units the units to distribute
+	 * @param width the total width of the returned strings
+	 * @param padding characters to add between strings, if the space is bigger 
+	 * 	than the string the padding will be repeated, otherwise the padding will be truncated.
+	 * @param mode the distribution mode
 	 * @return a list of size 2*N-1, where N is the size of <code>units</code>. Element i of
 	 *         <code>unit</code> corresponds with element 2*i in the returned list. Elements i*2+1 for
 	 *         i=(0..N-1) is padding between units. The sum of the lengths of all strings equals

@@ -10,8 +10,8 @@ import org.daisy.dotify.formatter.impl.core.FormatterCoreImpl;
 import org.daisy.dotify.formatter.impl.core.LayoutMaster;
 
 /**
- * Provides an interface for a sequence of block contents.
- * 
+ * <p>Provides an implementation of the {@link FormatterSequence} interface.</p>
+ *
  * @author Joel Håkansson
  */
 public class BlockSequence extends FormatterCoreImpl implements FormatterSequence {

@@ -28,6 +28,7 @@ import org.daisy.dotify.api.translator.TextBorderFactory;
 import org.daisy.dotify.api.translator.TextBorderFactoryMakerService;
 import org.daisy.dotify.api.translator.TextBorderStyle;
 import org.daisy.dotify.formatter.impl.common.FormatterCoreContext;
+import org.daisy.dotify.formatter.impl.page.BlockSequence;
 import org.daisy.dotify.formatter.impl.row.BlockMargin;
 import org.daisy.dotify.formatter.impl.row.ListItem;
 import org.daisy.dotify.formatter.impl.row.Margin;
@@ -47,6 +48,13 @@ import org.daisy.dotify.formatter.impl.segment.NewLineSegment;
 import org.daisy.dotify.formatter.impl.segment.PageNumberReference;
 import org.daisy.dotify.formatter.impl.segment.TextSegment;
 
+/**
+ * <p>Provides a DOM for a sequence of blocks. The model implements 
+ * {@link FormatterCore} and is populated through the methods of that API. It
+ * serves as the base for a number of similar implementations. See these
+ * implementations for a description of how it is used.</p>
+ *
+ */
 public class FormatterCoreImpl extends Stack<Block> implements FormatterCore, BlockGroup {
 	/**
 	 * 

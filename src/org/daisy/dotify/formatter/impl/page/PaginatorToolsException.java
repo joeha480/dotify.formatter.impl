@@ -1,9 +1,9 @@
 package org.daisy.dotify.formatter.impl.page;
 
 /**
- * A LayoutToolsException is an exception that indicates 
- * conditions in a LayoutTools process that a reasonable 
- * application might want to catch.
+ * <p>A PaginatorToolsException is an exception that indicates conditions in a {@link PaginatorTools} process that a
+ * reasonable application might want to catch.</p>
+ *
  * @author Joel Håkansson
  */
 class PaginatorToolsException extends Exception {

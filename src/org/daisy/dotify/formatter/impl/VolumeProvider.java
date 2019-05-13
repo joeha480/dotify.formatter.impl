@@ -36,8 +36,29 @@ import org.daisy.dotify.formatter.impl.volume.VolumeSequence;
 import org.daisy.dotify.formatter.impl.volume.VolumeTemplate;
 
 /**
- * Provides contents in volumes.
- *  
+ * <p>Provides formatted volumes one-by-one. A volume represents a part of a book having 
+ * a separate binding. {@link org.daisy.dotify.formatter.impl.common.Volume Volume}s are 
+ * common in braille due to the large amount of paper needed for a book.</p>
+ * 
+ * <p>The inputs needed are specified by the constructor:
+ * {@link #VolumeProvider(List, Stack, LazyFormatterContext, CrossReferenceHandler)}. 
+ * The contents of the book is represented by a list of {@link BlockSequence}s.
+ * Each volume is obtained through a call to {@link
+ * #nextVolume()}). For more information, see {@link FormatterImpl}.</p>
+ *
+ * <p>The input is first converted to a sequence of "volume groups", 
+ * one for each manual volume break (<code>break-before="volume"</code>).</p>
+ * 
+ * For every volume group a {@link
+ * SheetDataSource} is then created, which is wrapped in a {@link SheetGroup} together with its
+ * respective {@link org.daisy.dotify.formatter.impl.sheet.VolumeSplitter}, which determines the
+ * number of required volumes and their target sizes. All groups are managed in a {@link
+ * SheetGroupManager}.</p>
+ * <p>{@link SheetDataSource}s that do not fit in a single volume are broken, using {@link
+ * SplitPointHandler}. The cost function takes into account how much the size of a volume deviates
+ * from the target size, the <code>volume-break-priority</code> of the last sheet, and whether the
+ * {@link Sheet#isBreakable() isBreakable} constraint of the last sheet is violated.</p>
+ *
  * @author Joel Håkansson
  *
  */
@@ -86,8 +107,13 @@ public class VolumeProvider {
 	}
 		
 	/**
-	 * Resets the volume provider to its initial state (with some information preserved). 
-	 * @throws RestartPaginationException
+	 *<p>Prepares the volume provider so that each volume can be extracted. The first
+	 * time this method is called, some initial calculations are performed (for
+	 * example, estimating the number of volumes). This extraction process can be
+	 * repeated several times. Some information is preserved from previous iterations
+	 * in order to improve the correctness of the output.</p>
+	 * 
+	 * @throws RestartPaginationException if pagination should be restarted
 	 */
 	void prepare() {
 		if (!init) {
