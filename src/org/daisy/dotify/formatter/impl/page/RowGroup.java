@@ -13,6 +13,10 @@ import org.daisy.dotify.formatter.impl.row.LineProperties;
 import org.daisy.dotify.formatter.impl.row.RowImpl;
 import org.daisy.dotify.formatter.impl.search.VolumeKeepPriority;
 
+/**
+ * A RowGroup is a unit (implements {@link SplitPointUnit}) of one or more (or zero?) rows that can
+ * not be separated.
+ */
 class RowGroup implements SplitPointUnit {
 	private final List<RowImpl> rows;
 	private final List<Marker> markers;
@@ -106,6 +110,7 @@ class RowGroup implements SplitPointUnit {
 		/**
 		 * Sets the last in a block indicator.
 		 * @param value the value
+		 * @return this builder
 		 */
 		Builder lastRowGroupInBlock(boolean value) {
 			this.lastInBlock = value;
@@ -187,21 +192,33 @@ class RowGroup implements SplitPointUnit {
 		return Collections.unmodifiableList(rows);
 	}
 
+	/**
+	 * Means that the page can be broken after this RowGroup.
+	 */
 	@Override
 	public boolean isBreakable() {
 		return breakable;
 	}
 
+	/**
+	 * Means that this RowGroup can be skipped if a page break follows (bottom margins).
+	 */
 	@Override
 	public boolean isSkippable() {
 		return skippable;
 	}
 
+	/**
+	 * Means that this RowGroup may be combined with preceding RowGroups (adjoining margins).
+	 */
 	@Override
 	public boolean isCollapsible() {
 		return collapsible;
 	}
 
+	/**
+	 * <code>1</code> means <a href="http://braillespecs.github.io/pef/images/rendering.jpg">dot-to-dot height</a>.
+	 */
 	@Override
 	public float getUnitSize() {
 		return unitSize;

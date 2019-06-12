@@ -67,6 +67,9 @@ public class VolumeProvider {
 	private static final int DEFAULT_SPLITTER_MAX = 50;
 	private final List<BlockSequence> blocks;
 	private final CrossReferenceHandler crh;
+	/*
+	Q: Why do we need variable groups?
+	*/
 	private SheetGroupManager groups;
 	private final SplitPointHandler<Sheet, SheetDataSource> volSplitter;
 
@@ -169,7 +172,10 @@ public class VolumeProvider {
 	}
 	
 	/**
-	 * Gets the contents of the next volume
+	 * Gets the contents of the next volume.
+	 * Also extends the anchordata
+	 * Q: With what is the anchordata extended?
+	 * 
 	 * @param overhead the number of sheets in this volume that's not part of the main body of text
 	 * @param ad the anchor data
 	 * @return returns the contents of the next volume
@@ -205,6 +211,11 @@ public class VolumeProvider {
 			}};
 		SplitPoint<Sheet, SheetDataSource> sp;
 
+		// The data is consumed two times. Once to find the optimal break point ("find" function),
+		// and once to do the actual split at that position ("split" function). We only record the
+		// changes made to the CrossReferenceHandler during the second pass. Note that although no
+		// changes are made to the CrossReferenceHandler, it can still become dirty if some info
+		// that is requested is not available.
 		crh.setReadOnly();
 		SheetDataSource data = groups.currentGroup().getUnits();
 		SheetDataSource copySource = new SheetDataSource(data);
@@ -242,6 +253,7 @@ public class VolumeProvider {
 		return sb;
 	}
 	
+	// the AnchorData is updated implicitly
 	private SectionBuilder updateVolumeContents(int volumeNumber, ArrayList<AnchorData> ad, boolean pre) {
 		DefaultContext c = new DefaultContext.Builder(crh)
 						.currentVolume(volumeNumber)
@@ -280,6 +292,11 @@ public class VolumeProvider {
 		return prepareToPaginate(new PageCounter(), rcontext, volumeGroup, fs);
 	}
 	
+	/*
+		There are two prepareToPaginate() methods. This is the first one.
+		It's purpose is to process forced page breaks.
+		In the OBFL these forced page breaks are marked as follows: <section break-before="volume">
+	*/
 	private Iterable<SheetDataSource> prepareToPaginateWithVolumeGroups(List<BlockSequence> fs, DefaultContext rcontext) {
 		List<List<BlockSequence>> volGroups = new ArrayList<>();
 		List<BlockSequence> currentGroup = new ArrayList<>();
@@ -304,6 +321,9 @@ public class VolumeProvider {
 			}};
 	}
 
+	/*
+		Further split into volumes after the forced page breaks.
+	*/
 	private List<SheetDataSource> prepareToPaginateWithVolumeGroups(PageCounter pageCounter, DefaultContext rcontext, Iterable<List<BlockSequence>> volGroups) throws PaginatorException {
 		List<SheetDataSource> ret = new ArrayList<>();
 		int i = 0;
@@ -326,6 +346,11 @@ public class VolumeProvider {
 		if (groups.hasNext() && logger.isLoggable(Level.FINE)) {
 			logger.fine("There is more content (sheets: " + groups.countRemainingSheets() + ", pages: " + groups.countRemainingPages() + ")");
 		}
+		/*
+		Q: The updateAll() generates a new mapping of sheets to volumes in EvenSizeVolumeSplitterCalculator.makeVolumeForSheetMap().
+			Why would you create such a new mapping _after_ the volume division?
+		A (Bert): It's for the next iteration of course.
+		*/
 		// this changes the value of groups.getVolumeCount() to the newly computed
 		// required number of volume based on groups.countTotalSheets()
 		groups.updateAll();

@@ -2,6 +2,10 @@ package org.daisy.dotify.formatter.impl.search;
 
 import java.util.List;
 
+/**
+ * Keeps track of the anchors contained on a page.
+ * http://braillespecs.github.io/obfl/obfl-specification.html#L924
+ */
 public class AnchorData {
 	private final int pageNumber;
 	private final List<String> refs;

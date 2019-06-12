@@ -4,16 +4,52 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+/**
+ * {@link VolumeSplitter} implementation that gives preference to even sized volumes.
+ *
+ * <p>Used from {@link SheetGroupManager}.</p>
+ *
+ * <p>Each volume group ({@link SheetGroup}) has its own VolumeSplitter instance.</p>
+ *
+ * <p>The target sizes of the volumes are computed in {@link
+ * EvenSizeVolumeSplitterCalculator}. Extra volumes are added based on the information provided
+ * through {@link #updateSheetCount(int, int) updateSheetCount}:</p>
+ *
+ * <ul>
+ *   <li>the actual total number of sheets (actual = in the previous iteration; total = including
+ *       remaining sheets and sheets coming from the pre- and post-content) in the volume group, and</li>
+ *   <li>the number sheets that did not fit in the volume group (in the previous iteration)</li>
+ * </ul>
+ *
+ * <p>The actual sizes of the volumes are not determined here. This is done in {@link
+ * org.daisy.dotify.formatter.impl.VolumeProvider}.</p>
+ */
 class EvenSizeVolumeSplitter implements VolumeSplitter {
+    /*
+    Q: Is this the only class that implements VolumeSplitter?
+    A (Bert): yes
+    Q: Suppose I just want to fill the first volume, split it at a good place, go to the next volume, etc,
+        and I don't care about the size of the last volume.
+        Would this be a much easier approach?
+    A (Bert): It would simplify things a bit, but not that much I think.
+    */
 	private static final Logger logger = Logger.getLogger(EvenSizeVolumeSplitter.class.getCanonicalName());
 	private EvenSizeVolumeSplitterCalculator sdc;
 	private final SplitterLimit splitterMax;
-	int volumeOffset = 0;
+	/*
+    Q: What is volumeOffset for?
+    A: volumeOffset is to add a number of volumes on top of the number that EvenSizeVolumeSplitterCalculator
+        would calculate without a volumeOffset.
+    */
+    int volumeOffset = 0;
 	
 	/*
 	 * This map keeps track of which split suggestions resulted in a successful split. We
 	 * make use of this information in order to not get into an endless loop while looking
 	 * for the optimal number of volumes.
+	 * (Paul) This is the only place where information from all previous iterations is used.
+	 *	At other places, e.g. the LookupHandlers, only information from the previous iteration is used,
+	 *	for comparison purposes (setting of the dirty flag).
 	 */
 	private Map<EvenSizeVolumeSplitterCalculator,Boolean> previouslyTried = new HashMap<>();
 	
@@ -21,6 +57,13 @@ class EvenSizeVolumeSplitter implements VolumeSplitter {
 		this.splitterMax = splitterMax;
 	}
 	
+	/**
+	 * Provide information about the actual volumes in the previous iteration.
+	 *
+	 * @param sheets the total number of sheets in the volume group, including remaining sheets and
+	 *     sheets coming from pre- or post-content (overhead)
+	 * @param remainingSheets the number of sheets that did not fit in the volume group
+	 */
 	@Override
 	public void updateSheetCount(int sheets, int remainingSheets) {
 		if (sdc == null) {
@@ -34,6 +77,11 @@ class EvenSizeVolumeSplitter implements VolumeSplitter {
 				EvenSizeVolumeSplitterCalculator esc = new EvenSizeVolumeSplitterCalculator(sheets, splitterMax, volumeOffset);
 				
 				// Try increasing the volume count
+				/*
+				Q: Why would you ever want to do this?
+				A: The right question is: "why _wouldn't_ you want to do this? It is possible that this solution
+					hasn't been tried before, and we might have added too many volumes in the previous iteration.
+				*/
 				if (remainingSheets >= sheets) {
 					throw new IllegalStateException();
 				}

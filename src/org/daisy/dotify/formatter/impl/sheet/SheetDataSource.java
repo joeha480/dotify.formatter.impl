@@ -339,6 +339,11 @@ public class SheetDataSource implements SplitPointDataSource<Sheet, SheetDataSou
 				if (!psb.hasNext()) {
 					rcontext.getRefs().setSequenceScope(seqId, psb.getGlobalStartIndex(), psb.getToIndex());
 				}
+				// lastPageNumber = page number of the last page returned by psb
+				//  - initialPageOffset = page number corresponding to the first page returned by psb minus 1
+				//  - psbCurStartIndex = index of first page of psb in current volume
+				//  - psb.getGlobalStartIndex = value of psbCurStartIndex when psb was created
+				//  - psb.getSizeLast = number of supplied pages since psbCurStartIndex, rounded to an even number if duplex
 				int lastPageNumber = initialPageOffset + psbCurStartIndex - psb.getGlobalStartIndex() + psb.getSizeLast(psbCurStartIndex);
 				if (counter!=null) {
 					rcontext.getRefs().setPageNumberOffset(counter, lastPageNumber);
@@ -369,6 +374,7 @@ public class SheetDataSource implements SplitPointDataSource<Sheet, SheetDataSou
 		return SplitPointDataSource.super.split(atIndex);
 	}
 
+	// this happens when a new volume is started
 	@Override
 	public SplitResult<Sheet, SheetDataSource> splitInRange(int atIndex) {
 		if (!ensureBuffer(atIndex)) {

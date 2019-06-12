@@ -16,6 +16,24 @@ import org.daisy.dotify.formatter.impl.search.CrossReferenceHandler;
 import org.daisy.dotify.formatter.impl.search.DefaultContext;
 import org.daisy.dotify.formatter.impl.search.VolumeKeepPriority;
 
+/**
+ * Used by {@link RowGroupDataSource} to generate {@link RowGroup}s from a {@link Block}.
+ *
+ * <p>The input is a {@link Block} (and its corresponding {@link AbstractBlockContentManager}).</p>
+ *
+ * <p>The {@link RowGroup.Builder#avoidVolumeBreakAfterPriority(VolumeKeepPriority)
+ * avoidVolumeBreakAfterPriority} of the {@link RowGroup}s are set to the {@link
+ * Block#getAvoidVolumeBreakInsidePriority() getAvoidVolumeBreakInsidePriority} or {@link
+ * Block#getAvoidVolumeBreakAfterPriority() getAvoidVolumeBreakAfterPriority} of the {@link Block},
+ * depending on whether a RowGroup follows or not.</p>
+ *
+ * <p>Group markers, group anchors and group identifiers are added to the
+ * first content RowGroup (content = not padding, margin or border).</p>
+ *
+ * <p>An empty RowGroup is produced if the block contains markers, anchors or identifiers but no
+ * significant content (significant content = content that results in an actual line, i.e. non-empty
+ * text, a non-empty evaluate, a br, a page-number, a leader).</p>
+ */
 class RowGroupProvider {
 	private final LayoutMaster master;
 	private final Block g;
@@ -64,6 +82,11 @@ class RowGroupProvider {
 
 	public boolean hasNext() {
 		// these conditions must match the ones in next()
+		/*
+		phases < 3 are pre-processing steps
+		phase 3 is the step that actually processes the rowgroup
+		phases > 3 are post-processing steps
+		*/
 		return 
 			phase < 1 && bcm.hasCollapsiblePreContentRows()
 			||
@@ -141,6 +164,7 @@ class RowGroupProvider {
 			}
 		}
 		if (phase==3) {
+			// process this rowgroup
 			Optional<RowImpl> rt;
 			if ((rt=bcm.getNext(lineProps)).isPresent()) {
 				RowImpl r = rt.get();

@@ -22,6 +22,10 @@ public class PageCounter {
 		this.pageCount = template.pageCount;
 	}
 
+	/**
+	 * The value specified with <code>initial-page-number</code> minus 1.
+	 * @param value the default page offset
+	 */
 	public void setDefaultPageOffset(int value) {
 		pageOffset = value;
 	}
