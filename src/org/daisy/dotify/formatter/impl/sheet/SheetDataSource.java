@@ -28,9 +28,10 @@ import org.daisy.dotify.formatter.impl.search.TransitionProperties;
 import org.daisy.dotify.formatter.impl.search.VolumeKeepPriority;
 
 /**
- * Provides a data source for sheets. Given a list of 
- * BlockSequences, sheets are produced one by one.
- * 
+ * Provides a data source for {@link Sheet}s. Given a list of {@link BlockSequence}s, sheets are
+ * produced one by one.
+ *
+ * @see org.daisy.dotify.formatter.impl.VolumeProvider
  * @author Joel Håkansson
  */
 public class SheetDataSource implements SplitPointDataSource<Sheet, SheetDataSource> {
@@ -61,6 +62,16 @@ public class SheetDataSource implements SplitPointDataSource<Sheet, SheetDataSou
 	//Output buffer
 	private List<Sheet> sheetBuffer;
 
+	/**
+	 * Creates a new instance.
+	 * @param pageCounter a page counter
+	 * @param context the formatter context
+	 * @param rcontext the rendering context
+	 * @param volumeGroup The index of the volume group (0-based) or null. A volume group is a set of block sequences starting with a hard volume break
+	 *       (<code>break-before="volume"</code>).
+	 * @param seqsIterator The list of {@link BlockSequence}s contained in a volume group or in the pre- or post-content
+	 *       of a volume. 
+	 */
 	public SheetDataSource(PageCounter pageCounter, FormatterContext context, DefaultContext rcontext, Integer volumeGroup, List<BlockSequence> seqsIterator) {
 		this.pageCounter = pageCounter;
 		this.context = context;
@@ -168,8 +179,14 @@ public class SheetDataSource implements SplitPointDataSource<Sheet, SheetDataSou
 	}
 	
 	/**
-	 * Ensures that there are at least index elements in the buffer.
-	 * When index is -1 this method always returns false.
+	 * <p>Ensures that there are at least index elements in the buffer.
+	 * When index is -1 this method always returns false.</p>
+	 * 
+	 * <p>The {@link VolumeKeepPriority} of a sheet is that of the page on the back side of
+	 * the sheet, or the front side of the sheet if duplex is false or if volume transition
+	 * is allowed on the front side and that page has a higher {@link VolumeKeepPriority}
+	 * value (lower priority) than the back side.</p>
+	 * 
 	 * @param index the index (or -1 to get all remaining elements)
 	 * @return returns true if the index element was available, false otherwise
 	 */
@@ -177,12 +194,14 @@ public class SheetDataSource implements SplitPointDataSource<Sheet, SheetDataSou
 		Sheet.Builder s = null;
 		SheetIdentity si = null;
 		while (index<0 || sheetBuffer.size()<index) {
+			// this happens when a new volume is started
 			if (updateCounter) { 
 				if(counter!=null) {
 					initialPageOffset = rcontext.getRefs().getPageNumberOffset(counter) - psb.size();
 				} else {
 					initialPageOffset = pageCounter.getDefaultPageOffset() - psb.size();
 				}
+				// psbCurStartIndex (index of first page of current psb in current volume) is changed because we started a new volume
 				psbCurStartIndex = psb.getToIndex();
 				updateCounter = false;
 			}
@@ -272,6 +291,11 @@ public class SheetDataSource implements SplitPointDataSource<Sheet, SheetDataSou
 						transition = context.getTransitionBuilder().getResumeTransition();
 					}
 				}
+
+				// The last line may be hyphenated when:
+				// - the configuration allows it, or
+				// - it is not the last sheet of the volume, or
+				// - the section is in duplex mode and the current page number is odd (so it's not the last page on the sheet)
 				boolean hyphenateLastLine = 
 						!(	!context.getConfiguration().allowsEndingVolumeOnHyphen() 
 								&& sheetBuffer.size()==index-1 
